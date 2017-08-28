@@ -1,0 +1,4 @@
+# base packages
+python>3
+ipython
+pip
