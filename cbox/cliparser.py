@@ -1,6 +1,5 @@
 import inspect
 from argparse import ArgumentParser
-
 import re
 
 _empty = inspect.Signature.empty
@@ -11,11 +10,15 @@ _DOCSTRING_PARAM_REGEX = re.compile(
     flags=re.UNICODE | re.IGNORECASE | re.DOTALL | re.MULTILINE
 )
 
-__all__ = ('get_cli_parser', 'parse_args', 'resolve_func', )
+__all__ = ('get_cli_parser', 'parse_args', )
 
 
-def get_cli_parser(func, skip_first=1):
-    """TBD"""
+def get_cli_parser(func, skip_first=0):
+    """makes a parser for parsing cli arguments for `func`.
+
+    :param callable func: the function the parser will parse
+    :param int skip_first: skip this many first arguments of the func
+    """
     help_msg, func_args = _get_func_args(func)
     parser = ArgumentParser(description=help_msg)
 
@@ -37,21 +40,8 @@ def get_cli_parser(func, skip_first=1):
 
 
 def parse_args(parser, argv=None):
-    """TBD"""
     cmd_kwargs = dict(parser.parse_args(argv).__dict__)
     return cmd_kwargs
-
-
-def resolve_func(func=None, modulename='funcs_example'):
-    # TODO: import from environ and default home folder path
-    # TODO: ensure path import works
-    if callable(func):
-        return func
-
-    modulename = modulename  # TODO: preprocess this
-    funcname = func.replace('-', '_')
-    module = __import__(modulename)
-    return getattr(module, funcname)
 
 
 def _get_func_args(func):
@@ -103,8 +93,7 @@ def _parse_docstring(docstring):
 
 def _param2args(param, doc_param=None):
     if param.kind != param.POSITIONAL_OR_KEYWORD:
-        # TODO: exception Hirarchy
-        raise Exception('this type of param not yet supported')
+        raise ValueError('parameter type %s is not yet supported' % param.kind)
 
     arg_name = '%s%s' % ('--' if len(param.name) > 1 else '-', param.name.replace('_', '-'))  # noqa
     arg_required = param.default is _empty

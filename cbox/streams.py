@@ -8,12 +8,10 @@ __all__ = ('get_input_parser', 'get_output_parser', 'LINES', 'CHARS', )
 
 
 def get_input_parser(input_type):
-    """TBD"""
     return _input_mapping[input_type]
 
 
 def get_output_parser(output_type, input_type=None):
-    """TBD"""
     # set output type same as input type when not specified
     output_type = output_type or input_type
     return _output_mapping[output_type]

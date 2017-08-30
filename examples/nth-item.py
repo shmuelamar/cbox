@@ -2,7 +2,7 @@
 import cbox
 
 
-@cbox.cli()
+@cbox.stream()
 # we can pass default values and use type annotations for correct types
 def nth_item(line, n: int = 0):
     """returns the nth item from each line.

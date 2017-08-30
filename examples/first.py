@@ -2,7 +2,7 @@
 import cbox
 
 
-@cbox.cli()
+@cbox.stream()
 def first(line):
     return line.split()[0]
 

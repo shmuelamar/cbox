@@ -3,8 +3,6 @@ import threading
 from io import StringIO
 from string import ascii_letters
 
-import pytest
-
 import cbox
 
 _here = os.path.dirname(os.path.abspath(__file__))
@@ -17,14 +15,14 @@ def run_cli(func, in_data, argv=()):
     outstream = StringIO()
     instream = StringIO(in_data)
 
-    cbox.run(func, argv, instream, outstream)
+    cbox.main(func, argv, instream, outstream)
 
     outstream.seek(0)
     return outstream.read()
 
 
 def test_run_cli_helper():
-    @cbox.cli()
+    @cbox.stream()
     def identity(line, x: int, y=2):
         assert x == 1
         assert y == 2
@@ -33,8 +31,16 @@ def test_run_cli_helper():
     assert run_cli(identity, DATA1, argv=['-x', '1']) == DATA1
 
 
+def test_cmd():
+    @cbox.cmd
+    def hello(name):
+        print('hello {}'.format(name))
+
+    run_cli(hello, None, argv=['--name', 'test'])
+
+
 def test_cli_simple_func():
-    @cbox.cli()
+    @cbox.stream()
     def first(line):
         return line.split(' ', 1)[0]
 
@@ -42,7 +48,7 @@ def test_cli_simple_func():
 
 
 def test_cli_worker_type_simple():
-    @cbox.cli(worker_type='simple', max_workers=4)
+    @cbox.stream(worker_type='simple', max_workers=4)
     def simple(line):
         return str(threading.get_ident())
 
@@ -52,7 +58,7 @@ def test_cli_worker_type_simple():
 
 
 def test_cli_threads():
-    @cbox.cli(worker_type='thread', max_workers=4)
+    @cbox.stream(worker_type='thread', max_workers=4)
     def threaded(line):
         return line + str(threading.get_ident())
 
@@ -60,18 +66,8 @@ def test_cli_threads():
     assert len(lines) == len(set(lines)) == 4
 
 
-@pytest.mark.skip('subprocess not supported yet')
-def test_cli_subprocess():
-    @cbox.cli(worker_type='subprocess', max_workers=4)
-    def subprocessed(line):
-        return line + str(threading.get_ident())
-
-    lines = run_cli(subprocessed, DATA1).splitlines()
-    assert len(lines) == len(set(lines)) == 4
-
-
 def test_cli_arg():
-    @cbox.cli()
+    @cbox.stream()
     def firstn(line, n: int):
         return ' '.join(line.split(' ', n)[:n])
 
@@ -83,7 +79,7 @@ def test_cli_arg():
 
 
 def test_cli_default_arg():
-    @cbox.cli()
+    @cbox.stream()
     def firstn(line, n=1):
         return ' '.join(line.split(' ', n)[:n])
 
@@ -94,7 +90,7 @@ def test_cli_default_arg():
 
 
 def test_cli_chars():
-    @cbox.cli(input_type='chars')
+    @cbox.stream(input_type='chars')
     def next_char(char):
         pos = ascii_letters.find(char)
         if pos != -1:
@@ -105,7 +101,7 @@ def test_cli_chars():
 
 
 def test_cli_raw():
-    @cbox.cli(input_type='raw')
+    @cbox.stream(input_type='raw')
     def sum_numbers(data):
         total = sum(int(ch) for ch in data)
         return str(total)

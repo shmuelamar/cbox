@@ -9,7 +9,7 @@ setup-env:
 	${ACTIVATE_VENV} && \
 	  conda install -y --file ${CONDA_REQS}
 
-test-setup: setup
+test-setup: setup-env
 	${ACTIVATE_VENV} && pip install -r ${TEST_REQS}
 
 test: clean validate
@@ -21,6 +21,8 @@ clean:
 	find ./tests/ -name '*.py[co]' -exec rm {} \;
 	rm -rf build dist $(PROJECT).egg-info
 	rm -f nosetests.xml
+	rm -f .coverage
+	rm -rf .cache/
 	rm -rf htmlcov/
 
 validate:

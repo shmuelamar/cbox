@@ -40,7 +40,7 @@ def test__parse_docstring(docstring, help_msg, params):
 
 
 def test_cli_docstring_help():
-    @cbox.cli()
+    @cbox.stream()
     def nth_item(line, n: int = 0):
         """returns the nth item from each line.
 
@@ -48,7 +48,7 @@ def test_cli_docstring_help():
         """
         return line.split()[n]
 
-    parser = cliparser.get_cli_parser(nth_item)
+    parser = cliparser.get_cli_parser(nth_item, skip_first=1)
     output = parser.format_help()
 
     expected = 'usage: %s [-h] [-n N]\n\nreturns the nth item from each ' \
@@ -57,3 +57,12 @@ def test_cli_docstring_help():
                'the number of item position starting from 0\n' % parser.prog
 
     assert output == expected
+
+
+def test_get_cli_parser_func_with_kwargs_raises():
+    @cbox.stream()
+    def func(**kargs):
+        pass
+
+    with pytest.raises(ValueError):
+        cliparser.get_cli_parser(func)

@@ -3,7 +3,7 @@ import cbox
 import requests
 
 
-@cbox.cli(worker_type='thread', max_workers=4)
+@cbox.stream(worker_type='thread', max_workers=4)
 def url_status(line):
     resp = requests.get(line)
     return f'{line} - {resp.status_code}'

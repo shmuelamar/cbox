@@ -1,13 +1,32 @@
 # CBOX - CLI ToolBox
 
-simply create unix-style commands from your python functions.
+simply create unix-style commands that handles pipes from your python functions.
+
+
+## Features
+* __supports pipes__
+* __concurrency (currently only threading)__
+* __supports multiple types of pipe processing (lines, chars..)__
+* __automatic docstring parsing for description and arguments help__
+* __automatic type annotation and defaults parsing__
+* __bash tab-completion__
+* __MIT license__
+* __supports only python3__ (yes this is a feature)
+
+## Quickstart
+
 
 ```python
+#!/usr/bin/env python3
 # hello.py
 import cbox
 
-@cbox.cli()
-def hello(name):
+@cbox.cmd
+def hello(name: str):
+    """greets a person by its name.
+
+    :param name: the name of the person
+    """
     print(f'hello {name}!')
 
 if __name__ == '__main__':
@@ -17,8 +36,17 @@ if __name__ == '__main__':
 run it:
 
 ```bash
-$ ./hello.py --name dave
-hello world
+$ ./hello.py --name world
+hello world!
+
+$ ./hello.py --help
+usage: hello.py [-h] --name NAME
+
+greets a person by its name.
+
+optional arguments:
+  -h, --help   show this help message and exit
+  --name NAME  the name of the person
 ```
 
 ## The Story
@@ -33,7 +61,7 @@ ruby http://ruby-lang.org
 
 all dave wanted is to get the list of languages from that file.
 
-our dave heard that unix commands are the best, so he started googling for them.
+our dave heard that unix commands are the best, so he started googling them out.
 
 he started reading about *awk*, *grep*, *sed*, *tr*, *cut* and others but couldn't 
 remember how to use all of them - after all he is a python programmer and wants to use python.
@@ -45,10 +73,11 @@ now dave can process files using python easily!
 
 ### simple example
 ```python
+#!/usr/bin/env python3
 # first.py
 import cbox
 
-@cbox.cli()
+@cbox.stream()
 def first(line):
     return line.split()[0]
 
@@ -72,10 +101,11 @@ dave now wants to get a list of the langs urls.
 ### arguments and help message
 
 ```python
+#!/usr/bin/env python3
 # nth-item.py
 import cbox
 
-@cbox.cli()
+@cbox.stream()
 # we can pass default values and use type annotations for correct types
 def nth_item(line, n: int = 0):
     """returns the nth item from each line.
@@ -91,6 +121,7 @@ if __name__ == '__main__':
 running it:
 
 ```bash
+#!/usr/bin/env python3
 $ ./nth-item.py --help
 usage: nth-item.py [-h] [-n N]
 
@@ -122,11 +153,12 @@ but to process a large list it will take too long, so he better off use threads.
 ### threading example
 
 ```python
+#!/usr/bin/env python3
 # url-status.py
 import cbox
 import requests
 
-@cbox.cli(worker_type='thread', max_workers=4)
+@cbox.stream(worker_type='thread', max_workers=4)
 def url_status(line):
     resp = requests.get(line)
     return f'{line} - {resp.status_code}'
@@ -145,27 +177,4 @@ http://ruby-lang.org - 200
 ```
 
 
-### More Examples
-
-```python
-# rotate-char.py
-import cbox
-from string import ascii_letters
-
-@cbox.cli(input_type='chars')
-def rotate(char):
-    """replace every english letter with the next letter"""
-    pos = ascii_letters.find(char)
-    if pos != -1:
-        char = ascii_letters[(pos + 1) % len(ascii_letters)]
-    return str(char)
-
-if __name__ == '__main__':
-    cbox.main(rotate)
-```
-
-running it:
-```bash
-$ echo 'abcde' | ./rotate-char.py 
-bcdef
-```
+__more examples can be found on `examples/` dir__
