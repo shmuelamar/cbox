@@ -26,7 +26,7 @@ clean:
 	rm -rf htmlcov/
 
 validate:
-	${ACTIVATE_VENV} && flake8 $(PROJECT)/ tests/ examples/
+	${ACTIVATE_VENV} && flake8 setup.py $(PROJECT)/ tests/ examples/
 
 all:
 	$(error please pick a target)
