@@ -29,3 +29,7 @@ venv
 # pyCharm IDE 
 .idea/
 
+# builds
+dist/
+build/
+*.egg-info/

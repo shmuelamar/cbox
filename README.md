@@ -1,17 +1,23 @@
 # CBOX - CLI ToolBox
 
-simply create unix-style commands that handles pipes from your python functions.
+[![PyPI](https://img.shields.io/pypi/v/cbox.svg)](https://pypi.python.org/pypi/cbox/0.1.0)
+[![PyPI](https://img.shields.io/pypi/pyversions/cbox.svg)](https://pypi.python.org/pypi/cbox/0.1.0)
+[![Build Status](https://travis-ci.org/shmuelamar/cbox.svg?branch=master)](https://travis-ci.org/shmuelamar/cbox)
+[![PyPI](https://img.shields.io/pypi/wheel/cbox.svg)]()
+[![PyPI](https://img.shields.io/pypi/l/cbox.svg)]()
+
+### convert any python function to unix-style command
+
 
 
 ## Features
-* __supports pipes__
-* __concurrency (currently only threading)__
-* __supports multiple types of pipe processing (lines, chars..)__
-* __automatic docstring parsing for description and arguments help__
-* __automatic type annotation and defaults parsing__
-* __bash tab-completion__
-* __MIT license__
-* __supports only python3__ (yes this is a feature)
+* supports pipes
+* concurrency (currently only threading)
+* supports multiple types of pipe processing (lines, chars..)
+* automatic docstring parsing for description and arguments help
+* automatic type annotation and defaults parsing
+* bash tab-completion
+* supports only python3 (yes this is a feature)
 
 ## Quickstart
 
