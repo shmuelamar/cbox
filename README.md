@@ -9,7 +9,12 @@
 
 ### convert any python function to unix-style command
 
+The Unix Philosophy (from [wikipedia](https://en.wikipedia.org/wiki/Unix_philosophy#Origin)):
+>    * *Write programs that do one thing and do it well.*
+>    * *Write programs to work together.*
+>    * *Write programs to handle text streams, because that is a universal interface.*
 
+<br />
 
 ## Features
 * supports pipes
@@ -17,12 +22,17 @@
 * supports multiple types of pipe processing (lines, chars..)
 * automatic docstring parsing for description and arguments help
 * automatic type annotation and defaults parsing
-* bash tab-completion
 * supports only python3 (yes this is a feature)
 
 ## Quickstart
 
+**install:**
 
+```bash
+pip install -U cbox
+```
+
+**example usage:**
 ```python
 #!/usr/bin/env python3
 # hello.py
@@ -40,7 +50,7 @@ if __name__ == '__main__':
     cbox.main(hello)
 ```
 
-run it:
+**run it:**
 
 ```bash
 $ ./hello.py --name world
@@ -185,3 +195,6 @@ http://ruby-lang.org - 200
 
 
 __more examples can be found on `examples/` dir__
+
+## Contributing
+cbox is an open source software and intended for everyone. please feel free to create PRs, add examples to examples/ dir, request features and ask questions.
