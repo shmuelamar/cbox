@@ -15,7 +15,7 @@ test-setup: setup-env
 test: clean validate
 	${ACTIVATE_VENV} && \
 	export PYTHONPATH=./$(PROJECT):$$PYTHONPATH && \
-	py.test --cov $(PROJECT)/ --cov-report=term --cov-report=html --junitxml=nosetests.xml -s -v tests/test_*.py
+	py.test --cov $(PROJECT)/ --cov-report=term --cov-report=html --junitxml=report.xml -s -v tests/test_*.py
 
 clean:
 	find ./tests/ -name '*.py[co]' -exec rm {} \;

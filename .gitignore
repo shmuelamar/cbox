@@ -15,6 +15,7 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
+report.xml
 
 # Sphinx documentation
 docs/_build/

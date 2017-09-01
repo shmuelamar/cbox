@@ -3,6 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/cbox.svg)](https://pypi.python.org/pypi/cbox/0.1.0)
 [![PyPI](https://img.shields.io/pypi/pyversions/cbox.svg)](https://pypi.python.org/pypi/cbox/0.1.0)
 [![Build Status](https://travis-ci.org/shmuelamar/cbox.svg?branch=master)](https://travis-ci.org/shmuelamar/cbox)
+[![Codecov](https://img.shields.io/codecov/c/github/shmuelamar/cbox.svg)](https://codecov.io/gh/shmuelamar/cbox)
 [![PyPI](https://img.shields.io/pypi/wheel/cbox.svg)]()
 [![PyPI](https://img.shields.io/pypi/l/cbox.svg)]()
 
