@@ -19,9 +19,12 @@ The Unix Philosophy (from [wikipedia](https://en.wikipedia.org/wiki/Unix_philoso
 ## Features
 * supports pipes
 * concurrency (currently only threading)
+* supports error handling (redirected to stderr)
+* various output processing options (filtering, early stopping..)
 * supports multiple types of pipe processing (lines, chars..)
 * automatic docstring parsing for description and arguments help
 * automatic type annotation and defaults parsing
+* returns the correct exitcode based on errors
 * supports only python3 (yes this is a feature)
 
 ## Quickstart
@@ -193,6 +196,124 @@ http://lisp-lang.org - 200
 http://ruby-lang.org - 200
 ```
 
+
+## Advanced Usage
+### Error handling
+
+```python
+#!/usr/bin/env python3
+# numbersonly.py
+import cbox
+
+@cbox.stream()
+def numbersonly(line):
+    """returns the lines containing only numbers. bad lines reported to stderr.
+    if any bad line is detected, exits with exitcode 2.
+    """
+    if not line.isnumeric():
+        raise ValueError('{} is not a number'.format(line))
+    return line
+
+if __name__ == '__main__':
+    cbox.main(numbersonly)
+```
+
+all errors are redirected to `stderr`:
+
+```bash
+$ echo -e "123\nabc\n567" | ./numbersonly.py
+123
+Traceback (most recent call last):
+  File "/home/shmulik/cs/cbox/cbox/concurrency.py", line 54, in _simple_runner
+    yield func(item, **kwargs), None
+  File "numbersonly.py", line 11, in numbersonly
+    raise ValueError('{} is not a number'.format(line))
+ValueError: abc is not a number
+
+567
+
+```
+
+we can ignore the `stderr` stream by redirecting it to `/dev/null`:
+```bash
+$ echo -e "123\nabc\n567" | ./numbersonly.py 2>/dev/null
+123
+567
+```
+
+our command returns 2 as the [exit code](https://en.wikipedia.org/wiki/Exit_status#Shell_and_scripts), 
+indicating an error, we can get the last error code by running `echo $?`:
+
+```bash
+$ echo $?
+2
+```
+
+### Filtering
+
+`cbox.stream` supports three types of return values - `str`, `None` and `iterable` of `str`s.
+
+`None` skips and outputs nothing, `str` is outputted normally and each item in the `iterable` is treated as `str`.
+
+here is a simple example:
+
+```python
+#!/usr/bin/env python3
+# extract-domains.py
+import re
+import cbox
+
+@cbox.stream()
+def extract_domains(line):
+    """tries to extract all the domains from the input using simple regex"""
+    return re.findall(r'(?:\w+\.)+\w+', line) or None  # or None can be omitted
+
+if __name__ == '__main__':
+    cbox.main(extract_domains)
+```
+
+we can now run it (notice that we can have multiple domains or zero domains on each line):
+```bash
+$ echo -e "google.com cbox.com\nhello\nfacebook.com" | ./extract-domains.py 
+google.com
+cbox.com
+facebook.com
+```
+
+### Early Stopping
+`cbox.stream` supports early stopping, i.e. stopping before reading the whole `stdin`
+
+example implementing a simple `head` command
+```python
+#!/usr/bin/env python3
+# head.py
+import cbox
+
+counter = 0
+
+
+@cbox.stream()
+def head(line, n: int):
+    """returns the first `n` lines"""
+    global counter
+    counter += 1
+
+    if counter > n:
+        raise cbox.Stop()  # can also raise StopIteration()
+    return line
+
+
+if __name__ == '__main__':
+    cbox.main(head)
+```
+
+getting the first 2 lines:
+
+```bash
+$ echo -e "1\n2\n3\n4" | ./head.py -n 2
+1
+2
+```
 
 __more examples can be found on `examples/` dir__
 

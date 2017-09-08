@@ -1,5 +1,6 @@
+import sys
 from functools import wraps
-from sys import stdin, stdout
+from sys import stdin, stdout, stderr
 
 from cbox import executors
 from . import concurrency, streams
@@ -38,7 +39,7 @@ def stream(input_type='lines', output_type=None, worker_type='simple',
     def inner(f):
 
         @wraps(f)
-        def wrapper(input_stream, output_stream, **kwargs):
+        def wrapper(input_stream, output_stream, error_stream, **kwargs):
             in_parser = streams.get_input_parser(input_type)
             out_parser = streams.get_output_parser(output_type, input_type)
             runner = concurrency.get_runner(
@@ -48,7 +49,7 @@ def stream(input_type='lines', output_type=None, worker_type='simple',
             )
             items = in_parser(input_stream)
             output = runner(f, items, kwargs)
-            return out_parser(output_stream, output)
+            return out_parser(output_stream, error_stream, output)
 
         setattr(wrapper, executors.EXECUTOR_ATTR, executors.STREAM)
         return wrapper
@@ -80,7 +81,8 @@ def cmd(f):
     return wrapper
 
 
-def main(func=None, argv=None, input_stream=stdin, output_stream=stdout):
+def main(func=None, argv=None, input_stream=stdin, output_stream=stdout,
+         error_stream=stderr, exit=True):
     """runs a function as a command.
     runs a function as a command - reading input from `input_stream`, writing
     output into `output_stream` and providing arguments from `argv`.
@@ -102,9 +104,17 @@ def main(func=None, argv=None, input_stream=stdin, output_stream=stdout):
     :param callable func: the function to execute, must be decorated by
       `@cbox.cmd` or `@cbox.stream`.
     :param list[str] argv: command arguments (default `sys.argv`)
-    :param input_stream: readable bytes-like object (default `stdin`)
-    :param output_stream: writable bytes-like object (default `stdout`)
-    :return: the result of the `func`
+    :param input_stream: readable file-like object (default `stdin`)
+    :param output_stream: writable file-like object (default `stdout`)
+    :param error_stream: writable file-like object (default `stderr`)
+    :param bool exit: if True, exits (i.e. `sys.exit(exitcode)`)
+      with the `exitcode`, else returns the `exitcode`.
+      the code is 0 if no errors, else 2.
+    :return: the exit code if `exit` is False, else raises `SystemExit(code)`
     """
     executor = executors.get_func_executor(func)
-    return executor(func, argv, input_stream, output_stream)
+    exitcode = executor(func, argv, input_stream, output_stream, error_stream)
+
+    if exit:
+        sys.exit(exitcode)
+    return exitcode

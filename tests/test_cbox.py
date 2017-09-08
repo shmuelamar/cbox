@@ -1,23 +1,39 @@
 import os
+import re
 import threading
 from io import StringIO
+from itertools import product
 from string import ascii_letters
+
+import pytest
 
 import cbox
 
 _here = os.path.dirname(os.path.abspath(__file__))
 DATA1 = 'hello world\nmy name is ddd\nbye bye\nhi\n'
 DATA2 = 'hello\nworld\n'
+NUMBERS = '\n'.join([str(i) for i in range(1000)])
 
 
-def run_cli(func, in_data, argv=()):
+def run_cli(func, in_data, argv=(), expected_exitcode=0, return_stderr=False):
     """runs `func` using `cbox.run()` and returns its output stream content"""
     outstream = StringIO()
+    errstream = StringIO()
     instream = StringIO(in_data)
 
-    cbox.main(func, argv, instream, outstream)
+    exitcode = cbox.main(
+        func, argv, instream, outstream, errstream, exit=False
+    )
+
+    assert expected_exitcode == exitcode
 
     outstream.seek(0)
+    errstream.seek(0)
+
+    if return_stderr:
+        return outstream.read(), errstream.read()
+
+    assert not errstream.read()
     return outstream.read()
 
 
@@ -31,12 +47,28 @@ def test_run_cli_helper():
     assert run_cli(identity, DATA1, argv=['-x', '1']) == DATA1
 
 
+def test_run_cli_helper_stderr():
+    @cbox.stream()
+    def identity(line):
+        raise ValueError('hello')
+
+    out, err = run_cli(
+        identity, DATA1, return_stderr=True, expected_exitcode=2
+    )
+    assert not out
+    assert 'ValueError' in err
+
+
 def test_cmd():
+    msg = []
+
     @cbox.cmd
     def hello(name):
-        print('hello {}'.format(name))
+        msg.append(name)
+        return 0
 
     run_cli(hello, None, argv=['--name', 'test'])
+    assert msg == ['test']
 
 
 def test_cli_simple_func():
@@ -107,3 +139,103 @@ def test_cli_raw():
         return str(total)
 
     assert run_cli(sum_numbers, '1234') == '10'
+
+
+def test_cbox_list_output():
+    @cbox.stream()
+    def get_domains(line):
+        return re.findall(r'(?:\w+\.)+\w+', line)
+
+    lines = run_cli(get_domains, 'google.com facebook.com\nab\n').splitlines()
+    assert lines == ['google.com', 'facebook.com']
+
+
+def test_cbox_filtering():
+    @cbox.stream()
+    def get_domains(line):
+        return re.findall(r'(?:\w+\.)+\w+', line) or None
+
+    lines = run_cli(get_domains, 'google.com facebook.com\nab\n').splitlines()
+    assert lines == ['google.com', 'facebook.com']
+
+
+@pytest.mark.parametrize('exc,worker_type', product(
+    [StopIteration, cbox.Stop], ['thread', 'simple']
+))
+def test_cbox_stop_iteration(exc, worker_type):
+    line_counter = 0
+
+    @cbox.stream(worker_type=worker_type)
+    def head(line, n: int):
+        nonlocal line_counter
+
+        line_counter += 1
+        if line_counter > n:
+            raise exc()
+
+        return line
+
+    lines = run_cli(head, 'one\ntwo\nthree\n', ['-n', '2']).splitlines()
+    assert lines == ['one', 'two']
+
+
+def test_cbox_threads_stop_iteration():
+    line_counter = 0
+
+    @cbox.stream(worker_type='thread', max_workers=4)
+    def head(line, n: int):
+        nonlocal line_counter
+
+        line_counter += 1
+        if line_counter > n:
+            raise StopIteration()
+
+        return line
+
+    lines = run_cli(head, 'one\ntwo\nthree\n', ['-n', '2']).splitlines()
+    assert lines == ['one', 'two']
+
+
+def test_cbox_threads_ordered():
+    @cbox.stream(worker_type='thread', workers_window=100)
+    def identity(line):
+        return line
+
+    lines = run_cli(identity, NUMBERS).splitlines()
+    assert len(lines) == 1000
+    assert lines == NUMBERS.splitlines()
+
+
+def test_cbox_exitcode_0_no_error():
+    @cbox.stream()
+    def identity(line):
+        return line
+
+    with pytest.raises(SystemExit) as err:
+        cbox.main(identity, [], StringIO(DATA1), StringIO(), StringIO())
+        assert err.status == 0
+
+
+def test_cbox_exitcode_2_on_error():
+    @cbox.stream()
+    def raiser(line):
+        raise Exception()
+
+    with pytest.raises(SystemExit) as err:
+        cbox.main(raiser, [], StringIO(DATA1), StringIO(), StringIO())
+        assert err.status == 2
+
+
+@pytest.mark.parametrize('worker_type', ['simple', 'thread'])
+def test_cbox_stderr(worker_type):
+    @cbox.stream(worker_type=worker_type)
+    def digitsonly(line):
+        if not line.isnumeric():
+            raise ValueError('ignoring - not digit')
+        return line
+
+    out, errout = run_cli(
+        digitsonly, '1\na\n2\n', return_stderr=True, expected_exitcode=2
+    )
+    assert out.splitlines() == ['1', '2']
+    assert 'ignoring - not digit' in errout

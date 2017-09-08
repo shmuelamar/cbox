@@ -8,6 +8,14 @@ SIMPLE = 'simple'
 THREAD = 'thread'
 
 
+class Stop(Exception):
+    """signals to stop the processing of in stream"""
+    pass
+
+
+STOP_EXCEPTIONS = (StopIteration, Stop)
+
+
 def get_runner(worker_type, max_workers=None, workers_window=None):
     """returns a runner callable.
 
@@ -27,14 +35,36 @@ def _thread_runner(func, items, kwargs, *, max_workers, workers_window):
     items = iter(items)
 
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
-        futures = [pool.submit(func, item, **kwargs)
-                   for item in islice(items, workers_window)]
-        yield from [f.result() for f in futures]
+        while True:
+            futures = [pool.submit(func, item, **kwargs)
+                       for item in islice(items, workers_window)]
+            if not futures:
+                break
+
+            try:
+                yield from _future_iter(futures)
+            except STOP_EXCEPTIONS:
+                break
 
 
 def _simple_runner(func, items, kwargs, *, max_workers, workers_window):
     for item in items:
-        yield func(item, **kwargs)
+        try:
+            yield func(item, **kwargs), None
+        except STOP_EXCEPTIONS:
+            break
+        except Exception as e:
+            yield None, e
+
+
+def _future_iter(futures):
+    for fut in futures:
+        try:
+            yield fut.result(), None
+        except STOP_EXCEPTIONS:
+            raise
+        except Exception as e:
+            yield None, e
 
 
 # TODO: add asyncio

@@ -19,13 +19,13 @@ def get_func_executor(func):
         )
 
 
-def _execute_stream(func, argv, input_stream, output_stream):
+def _execute_stream(func, argv, input_stream, output_stream, error_stream):
     parser = cliparser.get_cli_parser(func, skip_first=1)
     func_kwargs = cliparser.parse_args(parser, argv=argv)
-    return func(input_stream, output_stream, **func_kwargs)
+    return func(input_stream, output_stream, error_stream, **func_kwargs)
 
 
-def _execute_cmd(func, argv, input_stream, output_stream):
+def _execute_cmd(func, argv, input_stream, output_stream, error_stream):
     parser = cliparser.get_cli_parser(func, skip_first=0)
     func_kwargs = cliparser.parse_args(parser, argv=argv)
     return func(**func_kwargs)
