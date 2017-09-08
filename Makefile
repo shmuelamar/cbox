@@ -28,6 +28,17 @@ clean:
 validate:
 	${ACTIVATE_VENV} && flake8 setup.py $(PROJECT)/ tests/ examples/
 
+build-dist: clean
+	${ACTIVATE_VENV} && \
+	export PYTHONPATH=./$(PROJECT):$$PYTHONPATH && \
+	python setup.py sdist bdist_wheel
+	gpg --detach-sign -a dist/cbox-*.tar.gz
+	gpg --detach-sign -a dist/cbox-*.whl
+
+upload-pypi: clean test build-dist
+	twine upload dist/cbox-${CBOX_VERSION}.tar.gz dist/cbox-${CBOX_VERSION}.tar.gz.asc
+	twine upload dist/cbox-${CBOX_VERSION}-py3-none-any.whl dist/cbox-${CBOX_VERSION}-py3-none-any.whl.asc
+
 all:
 	$(error please pick a target)
 
