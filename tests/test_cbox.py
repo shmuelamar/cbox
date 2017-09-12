@@ -1,4 +1,5 @@
 import os
+from os import linesep
 import re
 import threading
 from io import StringIO
@@ -10,9 +11,9 @@ import pytest
 import cbox
 
 _here = os.path.dirname(os.path.abspath(__file__))
-DATA1 = 'hello world\nmy name is ddd\nbye bye\nhi\n'
-DATA2 = 'hello\nworld\n'
-NUMBERS = '\n'.join([str(i) for i in range(1000)])
+DATA1 = linesep.join(['hello world', 'my name is ddd', 'bye bye', 'hi', ''])
+DATA2 = linesep.join(['hello', 'world', ''])
+NUMBERS = linesep.join([str(i) for i in range(1000)])
 
 
 def run_cli(func, in_data, argv=(), expected_exitcode=0, return_stderr=False):
@@ -76,7 +77,7 @@ def test_cli_simple_func():
     def first(line):
         return line.split(' ', 1)[0]
 
-    assert run_cli(first, DATA1) == 'hello\nmy\nbye\nhi\n'
+    assert run_cli(first, DATA1).splitlines() == ['hello', 'my', 'bye', 'hi']
 
 
 def test_cli_worker_type_simple():
@@ -103,11 +104,11 @@ def test_cli_arg():
     def firstn(line, n: int):
         return ' '.join(line.split(' ', n)[:n])
 
-    assert run_cli(firstn, DATA1, argv=['-n', '1']) == \
-        'hello\nmy\nbye\nhi\n'
+    assert run_cli(firstn, DATA1, argv=['-n', '1']).splitlines() == \
+        ['hello', 'my', 'bye', 'hi']
 
-    assert run_cli(firstn, DATA1, argv=['-n', '2']) == \
-        'hello world\nmy name\nbye bye\nhi\n'
+    assert run_cli(firstn, DATA1, argv=['-n', '2']).splitlines() == \
+        ['hello world', 'my name', 'bye bye', 'hi']
 
 
 def test_cli_default_arg():
@@ -115,10 +116,10 @@ def test_cli_default_arg():
     def firstn(line, n=1):
         return ' '.join(line.split(' ', n)[:n])
 
-    assert run_cli(firstn, DATA1) == 'hello\nmy\nbye\nhi\n'
+    assert run_cli(firstn, DATA1).splitlines() == ['hello', 'my', 'bye', 'hi']
 
-    assert run_cli(firstn, DATA1, argv=['-n', '2']) == \
-        'hello world\nmy name\nbye bye\nhi\n'
+    assert run_cli(firstn, DATA1, argv=['-n', '2']).splitlines() == \
+        ['hello world', 'my name', 'bye bye', 'hi']
 
 
 def test_cli_chars():
@@ -129,7 +130,8 @@ def test_cli_chars():
             char = ascii_letters[(pos + 1) % len(ascii_letters)]
         return str(char)
 
-    assert run_cli(next_char, DATA2) == 'ifmmp\nxpsme\n'
+    assert run_cli(next_char, DATA2) == \
+        'ifmmp{}xpsme{}'.format(linesep, linesep)
 
 
 def test_cli_raw():
