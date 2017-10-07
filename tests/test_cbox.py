@@ -1,3 +1,4 @@
+import asyncio
 import os
 from os import linesep
 import re
@@ -241,3 +242,49 @@ def test_cbox_stderr(worker_type):
     )
     assert out.splitlines() == ['1', '2']
     assert 'ignoring - not digit' in errout
+
+
+def test_cbox_asyncio_stop_iteration():
+    line_counter = 0
+
+    @cbox.stream(worker_type='asyncio')
+    async def head(line, n: int):
+        nonlocal line_counter
+
+        await asyncio.sleep(0.01)
+        if line_counter >= n:
+            raise cbox.Stop()
+
+        line_counter += 1
+        return line
+
+    lines = run_cli(head, 'one\ntwo\nthree\n', ['-n', '2']).splitlines()
+    assert lines == ['one', 'two']
+
+
+def test_cbox_asyncio_ordered():
+    @cbox.stream(worker_type='asyncio', workers_window=100)
+    async def asleep(line):
+        await asyncio.sleep(0.01)
+        return line
+
+    lines = run_cli(asleep, NUMBERS).splitlines()
+    assert len(lines) == 1000
+    assert lines == NUMBERS.splitlines()
+
+
+def test_cbox_asyncio_uses_event_loop():
+    async def sleepy(x):
+        await asyncio.sleep(0.01)
+        return x
+
+    @cbox.stream(worker_type='asyncio', workers_window=100)
+    async def asleep(line):
+        loop = asyncio.get_event_loop()
+        fut = asyncio.ensure_future(sleepy(line), loop=loop)
+        await fut
+        return fut.result()
+
+    lines = run_cli(asleep, NUMBERS).splitlines()
+    assert len(lines) == 1000
+    assert lines == NUMBERS.splitlines()

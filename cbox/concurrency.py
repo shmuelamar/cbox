@@ -1,9 +1,11 @@
+import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from itertools import islice
 
 __all__ = ('get_runner', 'SIMPLE', 'THREAD', )
 
+ASYNCIO = 'asyncio'
 SIMPLE = 'simple'
 THREAD = 'thread'
 
@@ -57,6 +59,30 @@ def _simple_runner(func, items, kwargs, *, max_workers, workers_window):
             yield None, e
 
 
+def _asyncio_runner(func, items, kwargs, *, max_workers, workers_window):
+    loop = asyncio.new_event_loop()
+
+    try:
+        while True:
+            window = list(islice(items, workers_window))
+            if not window:
+                break
+
+            tasks = [func(item, **kwargs) for item in window]
+            futures = [asyncio.ensure_future(t, loop=loop) for t in tasks]
+            gathered = asyncio.gather(
+                *futures, loop=loop, return_exceptions=True
+            )
+            loop.run_until_complete(gathered)
+
+            try:
+                yield from _future_iter(futures)
+            except STOP_EXCEPTIONS:
+                break
+    finally:
+        loop.close()
+
+
 def _future_iter(futures):
     for fut in futures:
         try:
@@ -67,9 +93,9 @@ def _future_iter(futures):
             yield None, e
 
 
-# TODO: add asyncio
 # TODO: add subprocess
 _runners_mapping = {
     SIMPLE: _simple_runner,
     THREAD: _thread_runner,
+    ASYNCIO: _asyncio_runner,
 }

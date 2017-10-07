@@ -19,7 +19,7 @@ The Unix Philosophy (from [wikipedia](https://en.wikipedia.org/wiki/Unix_philoso
 
 ## Features
 * supports pipes
-* concurrency (currently only threading)
+* concurrency (threading or asyncio)
 * supports error handling (redirected to stderr)
 * various output processing options (filtering, early stopping..)
 * supports multiple types of pipe processing (lines, chars..)
@@ -314,6 +314,46 @@ getting the first 2 lines:
 $ echo -e "1\n2\n3\n4" | ./head.py -n 2
 1
 2
+```
+
+
+### Concurrency
+
+`cbox` supports **simple (default)**, **asyncio** and **thread** workers. we can use asyncio like this:
+
+```python
+#!/usr/bin/env python3
+# tcping.py
+import asyncio
+import cbox
+
+@cbox.stream(worker_type='asyncio', workers_window=30)
+async def tcping(domain, timeout: int=3):
+    loop = asyncio.get_event_loop()
+
+    fut = asyncio.open_connection(domain, 80, loop=loop)
+    try:
+        reader, writer = await asyncio.wait_for(fut, timeout=timeout)
+        writer.close()
+        status = 'up'
+    except (OSError, asyncio.TimeoutError):
+        status = 'down'
+
+    return '{} is {}'.format(domain, status)
+
+if __name__ == '__main__':
+    cbox.main(tcping)
+```
+
+this will try open up to 30 connections in parallel using asyncio. 
+
+running it:
+
+```bash
+$ echo -e "192.168.1.1\n192.168.2.3\ngoogle.com"  | ./tcping.py
+192.168.1.1 is down
+192.168.2.3 is down
+google.com is up
 ```
 
 __more examples can be found on `examples/` dir__
