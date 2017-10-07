@@ -1,5 +1,5 @@
 __description__ = 'convert any python function to unix-style command'
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 __author__ = 'Shmuel Amar'
 __url__ = 'https://github.com/shmuelamar/cbox'
 __license__ = 'MIT'

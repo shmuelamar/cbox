@@ -3,6 +3,7 @@ PROJECT := cbox
 ACTIVATE_VENV = source activate ${PROJECT}
 CONDA_REQS := "conda-requirements.txt"
 TEST_REQS := "test-requirements.txt"
+PROJECT_VERSION := 0.3.0
 
 setup-env:
 	-conda create -y -n ${PROJECT} ipython
@@ -36,8 +37,8 @@ build-dist: clean
 	gpg --detach-sign -a dist/cbox-*.whl
 
 upload-pypi: clean test build-dist
-	twine upload dist/cbox-${CBOX_VERSION}.tar.gz dist/cbox-${CBOX_VERSION}.tar.gz.asc
-	twine upload dist/cbox-${CBOX_VERSION}-py3-none-any.whl dist/cbox-${CBOX_VERSION}-py3-none-any.whl.asc
+	twine upload dist/cbox-${PROJECT_VERSION}.tar.gz dist/cbox-${PROJECT_VERSION}.tar.gz.asc
+	twine upload dist/cbox-${PROJECT_VERSION}-py3-none-any.whl dist/cbox-${PROJECT_VERSION}-py3-none-any.whl.asc
 
 all:
 	$(error please pick a target)
