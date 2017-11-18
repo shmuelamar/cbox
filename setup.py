@@ -55,6 +55,9 @@ setup(
     license=find_meta('license'),
     packages=[NAME],
     install_requires=REQUIREMENTS,
+    entry_points={
+        'console_scripts': ['cbox=cbox.__main__:main']
+    },
     include_package_data=True,
     zip_safe=False,
 )

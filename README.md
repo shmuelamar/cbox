@@ -21,6 +21,7 @@ The Unix Philosophy (from [wikipedia](https://en.wikipedia.org/wiki/Unix_philoso
 * supports pipes
 * concurrency (threading or asyncio)
 * supports error handling (redirected to stderr)
+* supports for inline code in cli style
 * various output processing options (filtering, early stopping..)
 * supports multiple types of pipe processing (lines, chars..)
 * automatic docstring parsing for description and arguments help
@@ -70,6 +71,17 @@ optional arguments:
   --name NAME  the name of the person
 ```
 
+**cli inline example:**
+
+```bash
+$ echo -e "192.168.1.1\n192.168.2.3\ngoogle.com" | cbox --modules re 're.findall("(?:\d+\.)+\d+", s)'
+192.168.1.1
+192.168.2.3
+```
+
+*for more info about cbox inline run `cbox --help`*
+
+
 ## The Story
 once upon a time, a python programmer named dave, had a simple text file. 
 
@@ -114,6 +126,15 @@ python
 lisp
 ruby
 ```
+
+**or inline cli style:**
+
+```bash
+$ cat langs.txt | cbox 's.split()[0]'
+```
+
+*note: **`s`** is the input variable*
+
 
 now dave is satisfied, so like every satisfied programmer - he wants more!
 
@@ -188,10 +209,19 @@ if __name__ == '__main__':
     cbox.main(url_status)
 ```
 
-running it:
+**running it:**
 
 ```bash
 $ cat langs.txt | ./nth-line.py -n 1 | ./url-status.py 
+http://python.org - 200
+http://lisp-lang.org - 200
+http://ruby-lang.org - 200
+```
+
+**or inline cli style**
+
+```bash
+$ cat langs.txt | cbox 's.split()[1]' | cbox -m requests  -w thread -c 4 'f"{s} - {requests.get(s).status_code}"'
 http://python.org - 200
 http://lisp-lang.org - 200
 http://ruby-lang.org - 200

@@ -30,11 +30,12 @@ def stream(input_type='lines', output_type=None, worker_type='simple',
     :param str output_type: defines how to write into output stream
       (similarly to input stream). if `None`, split the output stream in the
       same way of `input_type`. one of `None`, `lines`, `chars` or `raw`.
-    :param str worker_type: one of `simple` or `thread`.
-    :param int max_workers: how many max workers (e.g. threads) to run in
+    :param str worker_type: one of `simple`, `thread` or `asyncio`.
+    :param int max_workers: how many max workers (i.e. threads) to run in
       parallel. only affect if `worker_type=thread`.
     :param int workers_window: how many tasks to execute in parallel before
-      waiting for them to be completed. only affect if `worker_type=thread`.
+      waiting for them to be completed. only affect if `worker_type`
+      is not simple.
     """
     def inner(f):
 

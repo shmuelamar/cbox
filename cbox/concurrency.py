@@ -3,7 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from itertools import islice
 
-__all__ = ('get_runner', 'SIMPLE', 'THREAD', )
+__all__ = ('get_runner', 'SIMPLE', 'THREAD', 'ASYNCIO', )
 
 ASYNCIO = 'asyncio'
 SIMPLE = 'simple'
