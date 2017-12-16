@@ -13,29 +13,48 @@ _DOCSTRING_PARAM_REGEX = re.compile(
 __all__ = ('get_cli_parser', 'parse_args', )
 
 
+class Arg:
+    def __init__(
+            self, type_=str, positional=False, names=None, help_=None):
+        self.names = names
+        self.type_ = type_
+        self.positional = positional
+        self.help_ = help_
+
+    def get_names(self):
+        if self.positional:
+            return self.names
+
+        return list(map(lambda _: ('--' if len(_) > 1 else '-') + _,
+                    self.names))
+
+
 def get_cli_parser(func, skip_first=0):
     """makes a parser for parsing cli arguments for `func`.
 
     :param callable func: the function the parser will parse
     :param int skip_first: skip this many first arguments of the func
+
     """
     help_msg, func_args = _get_func_args(func)
     parser = ArgumentParser(description=help_msg)
 
-    for i, arg in enumerate(func_args):
-        arg_name, arg_type, arg_default, arg_required, arg_help = arg
-        if i < skip_first:
-            continue
+    for arg in func_args[skip_first:]:
+        arg_type, arg_default, arg_required = arg
 
-        if arg_default is not _empty:
-            parser.add_argument(
-                arg_name, type=arg_type, default=arg_default,
-                required=arg_required, help=arg_help
-            )
-        else:
-            parser.add_argument(
-                arg_name, type=arg_type, required=arg_required, help=arg_help
-            )
+        kwargs = {
+            'type': arg_type.type_,
+            'default': None if arg_default is _empty else arg_default,
+            'required': arg_required,
+            'help': arg_type.help_,
+        }
+
+        if arg_type.positional:
+            kwargs.pop('required')
+            kwargs['nargs'] = '?'
+
+        parser.add_argument(*arg_type.get_names(), **kwargs)
+
     return parser
 
 
@@ -66,7 +85,7 @@ def _strip_lines(txt):
 
 
 def _parse_docstring(docstring):
-    """parses docstring into its help message and params"""
+    """parses docstring into its help message and params."""
     params = {}
 
     if not docstring:
@@ -95,10 +114,8 @@ def _param2args(param, doc_param=None):
     if param.kind != param.POSITIONAL_OR_KEYWORD:
         raise ValueError('parameter type %s is not yet supported' % param.kind)
 
-    arg_name = '%s%s' % ('--' if len(param.name) > 1 else '-', param.name.replace('_', '-'))  # noqa
     arg_required = param.default is _empty
     arg_default = param.default
-    arg_help = doc_param[1] if doc_param else None
 
     if param.annotation is not _empty:
         arg_type = param.annotation
@@ -107,4 +124,13 @@ def _param2args(param, doc_param=None):
     else:
         arg_type = str
 
-    return arg_name, arg_type, arg_default, arg_required, arg_help
+    if not isinstance(arg_type, Arg):
+        arg_type = Arg(type_=arg_type)
+
+    if arg_type.names is None:
+        arg_type.names = [param.name.replace('_', '-')]
+
+    if arg_type.help_ is None:
+        arg_type.help_ = doc_param[1] if doc_param else None
+
+    return arg_type, arg_default, arg_required

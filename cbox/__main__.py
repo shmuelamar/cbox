@@ -6,7 +6,8 @@ from sys import stdin, stdout, stderr
 import cbox
 from cbox import concurrency
 
-__all__ = ('get_inline_func', 'main', )
+
+__all__ = ('get_inline_func', 'main')
 
 
 def _inline2func(inline_str, inline_globals, **stream_kwargs):
@@ -37,7 +38,7 @@ def _is_compilable(s):
     try:
         ast.parse(s)
         return True
-    except:
+    except Exception:
         return False
 
 
