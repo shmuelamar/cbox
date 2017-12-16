@@ -7,3 +7,4 @@ __keywords__ = 'unix command pipes cli'
 
 from .cli import stream, cmd, main  # noqa
 from .concurrency import Stop  # noqa
+from .cliparser import Arg # noqa
