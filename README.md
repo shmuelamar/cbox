@@ -28,6 +28,7 @@ The Unix Philosophy (from [wikipedia](https://en.wikipedia.org/wiki/Unix_philoso
 * automatic type annotation and defaults parsing
 * returns the correct exitcode based on errors
 * supports only python3 (yes this is a feature)
+* supports subcommands
 
 ## Quickstart
 

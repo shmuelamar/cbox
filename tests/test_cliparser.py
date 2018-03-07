@@ -102,6 +102,5 @@ subcommands:
     func2        description of func2
 """
     output = parser.format_help()
-    print(output)
     assert output == expected % parser.prog
 
