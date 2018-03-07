@@ -13,14 +13,16 @@ _DOCSTRING_PARAM_REGEX = re.compile(
 __all__ = ('get_cli_parser', 'parse_args', )
 
 
-def get_cli_parser(func, skip_first=0):
+def get_cli_parser(func, skip_first=0, parser=None):
     """makes a parser for parsing cli arguments for `func`.
 
     :param callable func: the function the parser will parse
     :param int skip_first: skip this many first arguments of the func
+    :param ArgumentParser parser: bind func to this parser.
     """
     help_msg, func_args = _get_func_args(func)
-    parser = ArgumentParser(description=help_msg)
+    if not parser:
+        parser = ArgumentParser(description=help_msg)
 
     for i, arg in enumerate(func_args):
         arg_name, arg_type, arg_default, arg_required, arg_help = arg
@@ -36,6 +38,21 @@ def get_cli_parser(func, skip_first=0):
             parser.add_argument(
                 arg_name, type=arg_type, required=arg_required, help=arg_help
             )
+    return parser
+
+
+def get_cli_multi_parser(funcs, skip_first=0):
+    """makes a parser for parsing cli arguments for `func`.
+
+    :param list funcs: the function the parser will parse
+    :param int skip_first: skip this many first arguments of the func
+    """
+    parser = ArgumentParser(description="which subcommand do you want?")
+    subparsers = parser.add_subparsers(title='subcommands', dest='subcmd', help='')
+    for func in funcs:
+        help_msg, func_args = _get_func_args(func)
+        sub_parser = subparsers.add_parser(func.__name__, help=help_msg)
+        sub_parser = get_cli_parser(func, skip_first=skip_first, parser=sub_parser)
     return parser
 
 
