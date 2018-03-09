@@ -6,7 +6,9 @@ CMD = 'cmd'
 MULTI_CMD = 'multi-cmd'
 STREAM = 'STREAM'
 
-__all__ = ('get_func_executor', 'EXECUTOR_ATTR', 'CMD', 'MULTI_CMD', 'STREAM', )
+ERR_EXIT_CODE = 2
+
+__all__ = ('get_func_executor', 'EXECUTOR_ATTR', 'CMD', 'MULTI_CMD', 'STREAM',)
 
 
 def get_func_executor(func):
@@ -41,7 +43,7 @@ def _execute_multi_cmd(funcs, argv, input_stream, output_stream, error_stream):
     subcmd = func_kwargs.get('subcmd', None)
     if not subcmd:
         print(parser.format_help())
-        return 0
+        return ERR_EXIT_CODE
 
     del func_kwargs['subcmd']
     funcs_dict = {f.__name__: f for f in funcs}

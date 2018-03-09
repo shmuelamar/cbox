@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import sys; sys.path.append('.')
 import cbox
 
 
@@ -9,7 +8,8 @@ def hello(name: str):
 
     :param name: the name of the person
     """
-    print('hello name={name}!'.format(**locals()))
+    print('hello name {name}!'.format(name=name))
+
 
 @cbox.cmd
 def world(name: str):
@@ -17,7 +17,7 @@ def world(name: str):
 
     :param name: the name of the person
     """
-    print('world name={name}!'.format(**locals()))
+    print('world name {name}!'.format(name=name))
 
 
 if __name__ == '__main__':

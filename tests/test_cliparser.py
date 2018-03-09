@@ -103,4 +103,3 @@ subcommands:
 """
     output = parser.format_help()
     assert output == expected % parser.prog
-
