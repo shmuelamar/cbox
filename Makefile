@@ -3,7 +3,7 @@ PROJECT := cbox
 ACTIVATE_VENV = source activate ${PROJECT}
 CONDA_REQS := "conda-requirements.txt"
 TEST_REQS := "test-requirements.txt"
-PROJECT_VERSION := 0.4.0
+PROJECT_VERSION := 0.5.0
 
 setup-env:
 	-conda create -y -n ${PROJECT} ipython
