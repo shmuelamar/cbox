@@ -66,3 +66,40 @@ def test_get_cli_parser_func_with_kwargs_raises():
 
     with pytest.raises(ValueError):
         cliparser.get_cli_parser(func)
+
+
+def test_get_cli_multi_func():
+    @cbox.cmd
+    def func1(arg1):
+        """ description of func1
+
+        :param str arg1: desc1
+        :return:
+        """
+        pass
+
+    @cbox.cmd
+    def func2(arg1, arg2):
+        """ description of func2
+
+        :param str arg1: desc1
+        :param str arg2: desc2
+        :return:
+        """
+        pass
+
+    parser = cliparser.get_cli_multi_parser([func1, func2], skip_first=1)
+    expected = """usage: %s [-h] {func1,func2} ...
+
+which subcommand do you want?
+
+optional arguments:
+  -h, --help     show this help message and exit
+
+subcommands:
+  {func1,func2}
+    func1        description of func1
+    func2        description of func2
+"""
+    output = parser.format_help()
+    assert output == expected % parser.prog

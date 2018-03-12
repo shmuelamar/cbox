@@ -73,6 +73,39 @@ def test_cmd():
     assert msg == ['test']
 
 
+def test_multi_cmd():
+    msg = []
+
+    @cbox.cmd
+    def func1(arg1):
+        """ description of func1
+
+        :param str arg1: desc1
+        :return:
+        """
+        msg.clear()
+        msg.append('func1: arg1={}'.format(arg1))
+        return 0
+
+    @cbox.cmd
+    def func2(arg1, arg2):
+        """ description of func2
+
+        :param str arg1: desc1
+        :param str arg2: desc2
+        :return:
+        """
+        msg.clear()
+        msg.append("func2: arg1={} arg2={}".format(arg1, arg2))
+        return 0
+
+    run_cli([func1, func2], None, argv="func1 --arg1 1".split(' '))
+    assert msg[0] == "func1: arg1=1"
+
+    run_cli([func1, func2], None, argv="func2 --arg1 1 --arg2 2".split(' '))
+    assert msg[0] == "func2: arg1=1 arg2=2"
+
+
 def test_cli_simple_func():
     @cbox.stream()
     def first(line):
