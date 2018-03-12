@@ -8,7 +8,7 @@ def hello(name: str):
 
     :param name: the name of the person
     """
-    print(f'hello {name}!')
+    print('hello {}!'.format(name))
 
 
 if __name__ == '__main__':

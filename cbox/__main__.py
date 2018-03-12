@@ -37,7 +37,7 @@ def _is_compilable(s):
     try:
         ast.parse(s)
         return True
-    except:
+    except Exception:
         return False
 
 

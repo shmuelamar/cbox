@@ -10,6 +10,7 @@ from string import ascii_letters
 import pytest
 
 import cbox
+from cbox.exceptions import ArgumentException
 
 _here = os.path.dirname(os.path.abspath(__file__))
 DATA1 = linesep.join(['hello world', 'my name is ddd', 'bye bye', 'hi', ''])
@@ -71,6 +72,57 @@ def test_cmd():
 
     run_cli(hello, None, argv=['--name', 'test'])
     assert msg == ['test']
+
+
+def test_cmd_with_default_true_bool_argument():
+    msg = []
+
+    @cbox.cmd
+    def hello(name: str, boolean: bool = True):
+        msg.append(name)
+        msg.append(boolean)
+        return 0
+
+    run_cli(hello, None, argv=['--name', 'test'])
+    assert msg == ['test', True]
+
+    msg = []
+    run_cli(hello, None, argv=['--name', 'test', '--boolean'])
+    assert msg == ['test', False]
+
+
+def test_cmd_with_default_false_bool_argument():
+    msg = []
+
+    @cbox.cmd
+    def hello(name: str, boolean: bool = False):
+        msg.append(name)
+        msg.append(boolean)
+        return 0
+
+    run_cli(hello, None, argv=['--name', 'test'])
+    assert msg == ['test', False]
+
+    msg = []
+    run_cli(hello, None, argv=['--name', 'test', '--boolean'])
+    assert msg == ['test', True]
+
+
+def test_cmd_with_bool_argument_without_default():
+    msg = []
+
+    @cbox.cmd
+    def hello(name: str, boolean: bool):
+        msg.append(name)
+        msg.append(boolean)
+        return 0
+
+    run_cli(hello, None, argv=['--name', 'test', '--boolean', 'False'])
+    assert msg == ['test', False]
+
+    msg = []
+    run_cli(hello, None, argv=['--name', 'test', '--boolean', 'True'])
+    assert msg == ['test', True]
 
 
 def test_multi_cmd():

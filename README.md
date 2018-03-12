@@ -391,3 +391,21 @@ __more examples can be found on `examples/` dir__
 
 ## Contributing
 cbox is an open source software and intended for everyone. please feel free to create PRs, add examples to examples/ dir, request features and ask questions.
+
+### Creating Local Dev Env
+
+after cloning the repo, you'll need to install test dependencies from `test-requirements.txt`.
+
+there is a simple `make` command to install them (you'll need [`miniconda`](https://conda.io/miniconda.html) installed):
+
+```bash
+$ make test-setup
+```
+
+or you can use `pip install -r test-requirements.txt` (preferably in new virtualenv).
+
+now ensure all tests passes and runs locally:
+
+```bash
+$ make test
+```

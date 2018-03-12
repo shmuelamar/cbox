@@ -6,7 +6,7 @@ import requests
 @cbox.stream(worker_type='thread', max_workers=4)
 def url_status(line):
     resp = requests.get(line)
-    return f'{line} - {resp.status_code}'
+    return '{} - {}'.format(line, resp.status_code)
 
 
 if __name__ == '__main__':
