@@ -2,6 +2,8 @@ import inspect
 from argparse import ArgumentParser
 import re
 
+from cbox.exceptions import ArgumentException
+
 _empty = inspect.Signature.empty
 
 _DOCSTRING_REGEX = re.compile(r'^\s*\w.*?(\n\s*\n|$)', flags=re.DOTALL)
@@ -30,11 +32,20 @@ def get_cli_parser(func, skip_first=0, parser=None):
             continue
 
         if arg_default is not _empty:
-            parser.add_argument(
-                arg_name, type=arg_type, default=arg_default,
-                required=arg_required, help=arg_help
-            )
+            if arg[1] == bool:
+                action = 'store_{}'.format(str(not arg_default).lower())
+                parser.add_argument(
+                    arg_name, default=arg_default,
+                    required=arg_required, help=arg_help, action=action
+                )
+            else:
+                parser.add_argument(
+                    arg_name, type=arg_type, default=arg_default,
+                    required=arg_required, help=arg_help
+                )
         else:
+            if arg[1] == bool:
+                raise ArgumentException('Bool argument must has default value')
             parser.add_argument(
                 arg_name, type=arg_type, required=arg_required, help=arg_help
             )
