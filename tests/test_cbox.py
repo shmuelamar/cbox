@@ -117,10 +117,12 @@ def test_cmd_with_bool_argument_without_default():
         msg.append(boolean)
         return 0
 
-    with pytest.raises(ArgumentException) as e:
-        run_cli(hello, None, argv=['--name', 'test'])
+    run_cli(hello, None, argv=['--name', 'test', '--boolean', 'False'])
+    assert msg == ['test', False]
 
-    assert str(e.value) == 'Bool argument must has default value'
+    msg = []
+    run_cli(hello, None, argv=['--name', 'test', '--boolean', 'True'])
+    assert msg == ['test', True]
 
 
 def test_multi_cmd():

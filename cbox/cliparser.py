@@ -1,3 +1,4 @@
+import argparse
 import inspect
 from argparse import ArgumentParser
 import re
@@ -45,11 +46,25 @@ def get_cli_parser(func, skip_first=0, parser=None):
                 )
         else:
             if arg[1] == bool:
-                raise ArgumentException('Bool argument must has default value')
-            parser.add_argument(
-                arg_name, type=arg_type, required=arg_required, help=arg_help
-            )
+                parser.add_argument(
+                    arg_name, type=str2bool, required=arg_required, help=arg_help
+                )
+            else:
+                parser.add_argument(
+                    arg_name, type=arg_type, required=arg_required, help=arg_help
+                )
     return parser
+
+
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1', 'True'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0', 'False'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 def get_cli_multi_parser(funcs, skip_first=0):
