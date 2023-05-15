@@ -1,2 +1,0 @@
-class ArgumentException(Exception):
-    pass
